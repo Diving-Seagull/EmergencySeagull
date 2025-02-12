@@ -4,6 +4,7 @@ import EmergencySeagull.gpt.dto.TranscriptionResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.FileBody;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
@@ -20,6 +21,7 @@ import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WhisperService {
 
     @Value("${openai.api.key}")
@@ -45,8 +47,7 @@ public class WhisperService {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode jsonResponse = objectMapper.readTree(response.getEntity().getContent());
 
-                // 응답 전체 출력 (디버깅용)
-                System.out.println("Whisper API Response: " + jsonResponse.toPrettyString());
+                log.info("Whisper API Response: " + jsonResponse.toPrettyString());
 
                 String transcription = jsonResponse.has("text") ? jsonResponse.get("text").asText() : "Transcription failed";
                 return new TranscriptionResponse(transcription);
