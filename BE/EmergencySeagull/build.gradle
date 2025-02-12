@@ -45,6 +45,12 @@ dependencies {
 
 	// JWT 검증
 	implementation 'com.nimbusds:nimbus-jose-jwt:9.31'
+
+	// HttpClient
+	implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+
+	//JSON Parser
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
 }
 
 tasks.named('test') {
