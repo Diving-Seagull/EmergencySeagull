@@ -3,6 +3,9 @@ package EmergencySeagull.gpt.service;
 import EmergencySeagull.gpt.dto.TranscriptionResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -14,10 +17,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +48,8 @@ public class WhisperService {
 
                 log.info("Whisper API Response: " + jsonResponse.toPrettyString());
 
-                String transcription = jsonResponse.has("text") ? jsonResponse.get("text").asText() : "Transcription failed";
+                String transcription = jsonResponse.has("text") ? jsonResponse.get("text").asText()
+                    : "Transcription failed";
                 return new TranscriptionResponse(transcription);
             }
 
