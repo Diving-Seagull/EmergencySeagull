@@ -11,5 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TranscriptionResponse {
+
     private String text;
 }

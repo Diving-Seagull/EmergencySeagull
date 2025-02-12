@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ClassificationRequest {
+
     private String model;
     private List<Message> messages;
     private double temperature;
@@ -14,6 +15,7 @@ public class ClassificationRequest {
     @Data
     @Builder
     public static class Message {
+
         private String role;
         private String content;
     }

@@ -13,7 +13,6 @@ public enum ExceptionCode {
     // GPT 에러
     GPT_CLASSIFICATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "gpt 분류 중 에러 발생."),
 
-
     ;
 
     private final HttpStatus httpStatus;
