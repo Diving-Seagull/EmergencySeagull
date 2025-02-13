@@ -1,6 +1,11 @@
 package EmergencySeagull.gpt.service;
 
-import EmergencySeagull.gpt.dto.TranscriptionResponse;
+import EmergencySeagull.common.exception.CustomException;
+import EmergencySeagull.common.exception.ExceptionCode;
+import EmergencySeagull.gpt.dto.TranscriptionRequest;
+import EmergencySeagull.report.dto.ReportRequest;
+import EmergencySeagull.report.dto.ReportResponse;
+import EmergencySeagull.report.service.ReportService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -29,8 +34,15 @@ public class WhisperService {
     @Value("${openai.api.url}")
     private String apiUrl;
 
-    public TranscriptionResponse transcribeAudio(MultipartFile audioFile) throws IOException {
-        File file = convertMultipartFileToFile(audioFile);
+    private final ReportService reportService;
+
+    public ReportResponse transcribeAudio(MultipartFile audioFile, TranscriptionRequest request) {
+        File file;
+        try {
+            file = convertMultipartFileToFile(audioFile);
+        } catch (IOException e) {
+            throw new CustomException(ExceptionCode.GPT_CLASSIFICATION_ERROR);
+        }
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(apiUrl);
@@ -50,11 +62,18 @@ public class WhisperService {
 
                 String transcription = jsonResponse.has("text") ? jsonResponse.get("text").asText()
                     : "Transcription failed";
-                return new TranscriptionResponse(transcription);
-            }
 
+                ReportRequest reportRequest = new ReportRequest(transcription,
+                    request.getLatitude(), request.getLongitude());
+
+                return reportService.classifyAndSaveReport(reportRequest);
+            } catch (IOException e) {
+                throw new CustomException(ExceptionCode.GPT_CLASSIFICATION_ERROR);
+            }
+        } catch (IOException e) {
+            throw new CustomException(ExceptionCode.GPT_CLASSIFICATION_ERROR);
         } finally {
-            file.delete(); // 임시 파일 삭제
+            file.delete();
         }
     }
 

@@ -13,6 +13,9 @@ public enum ExceptionCode {
     // GPT 에러
     GPT_CLASSIFICATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "gpt 분류 중 에러 발생."),
 
+    // JSON 변환 에러
+    JSON_PARSE_ERROR(HttpStatus.BAD_REQUEST, "JSON 데이터 변환 중 에러 발생."),
+
     ;
 
     private final HttpStatus httpStatus;
