@@ -22,7 +22,7 @@ public class WhisperController {
 
     private final WhisperService whisperService;
 
-    @PostMapping(value = "/transcribe", consumes = {"multipart/form-data"})
+    @PostMapping("/transcribe")
     public ResponseEntity<ReportResponse> transcribeAudio(
         @RequestPart("file") MultipartFile file, @RequestPart("data") String data) {
         ObjectMapper objectMapper = new ObjectMapper();
