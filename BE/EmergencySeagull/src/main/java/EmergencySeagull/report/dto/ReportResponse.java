@@ -1,6 +1,7 @@
 package EmergencySeagull.report.dto;
 
 import EmergencySeagull.report.entity.Report;
+import EmergencySeagull.report.entity.ReportDocument;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
@@ -23,5 +24,14 @@ public class ReportResponse {
         this.latitude = report.getLatitude();
         this.longitude = report.getLongitude();
         this.createdAt = report.getCreatedAt().toString();
+    }
+
+    public ReportResponse(ReportDocument reportDocument) {
+        this.id = reportDocument.getId();
+        this.content = reportDocument.getContent();
+        this.category = reportDocument.getCategory().getDescription();
+        this.latitude = reportDocument.getLocation().getLat();
+        this.longitude = reportDocument.getLocation().getLon();
+        this.createdAt = reportDocument.getCreatedAt().toString();
     }
 }
