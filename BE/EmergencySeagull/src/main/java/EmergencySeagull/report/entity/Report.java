@@ -10,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,10 +45,22 @@ public class Report {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    // 중복 판단
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 1")
+    private Long duplicateCount = 1L;  // 초기값 1
+
+    @Version
+    private Long version;  // 동시성 제어
+
     public Report(String content, EmergencyCategory category, Double latitude, Double longitude) {
         this.content = content;
         this.category = category;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.duplicateCount = 1L;
+    }
+
+    public void incrementDuplicateCount() {
+        this.duplicateCount += 1;
     }
 }
