@@ -44,6 +44,9 @@ public class Report {
     @Column(nullable = false)
     private Double longitude;
 
+    @Column(nullable = false)
+    private String inCharge;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -56,13 +59,14 @@ public class Report {
     private Long version;  // 동시성 제어
 
     public Report(String content, EmergencyCategory category, String subCategory, Double latitude,
-        Double longitude) {
+        Double longitude, String inCharge) {
         this.content = content;
         this.category = category;
         this.subCategory = subCategory;
         this.latitude = latitude;
         this.longitude = longitude;
         this.duplicateCount = 1L;
+        this.inCharge = inCharge;
     }
 
     public void incrementDuplicateCount() {
