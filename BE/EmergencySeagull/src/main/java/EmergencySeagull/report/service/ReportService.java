@@ -92,9 +92,10 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ReportResponse> getReportsByCategory(EmergencyCategory category,
+    public Page<ReportResponse> getReportsByCategoryAndInCharge(EmergencyCategory category, String inCharge,
         Pageable pageable) {
-        Page<Report> reports = reportRepository.findByCategory(category, pageable);
+        Page<Report> reports = reportRepository.findByCategoryAndInCharge(category, inCharge,
+            pageable);
         return reports.map(ReportResponse::from);
     }
 

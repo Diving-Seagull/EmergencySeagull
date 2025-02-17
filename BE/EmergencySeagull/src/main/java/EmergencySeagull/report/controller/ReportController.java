@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -55,7 +56,7 @@ public class ReportController {
 
     @GetMapping("/category/{category}")
     public ResponseEntity<Page<ReportResponse>> getReportsByCategory(
-        @PathVariable EmergencyCategory category,
+        @PathVariable EmergencyCategory category, @RequestParam String inCharge,
         @PageableDefault Pageable pageable) {
         Sort sort = Sort.by(
             Sort.Order.desc("duplicateCount"),
@@ -68,8 +69,8 @@ public class ReportController {
             sort
         );
 
-        Page<ReportResponse> responses = reportService.getReportsByCategory(category,
-            sortedPageable);
+        Page<ReportResponse> responses = reportService.getReportsByCategoryAndInCharge(category,
+            inCharge, sortedPageable);
         return ResponseEntity.ok(responses);
     }
 

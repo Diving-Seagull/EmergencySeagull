@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-    Page<Report> findByCategory(EmergencyCategory category, Pageable pageable);
+    Page<Report> findByCategoryAndInCharge(EmergencyCategory category, String inCharge, Pageable pageable);
 }
