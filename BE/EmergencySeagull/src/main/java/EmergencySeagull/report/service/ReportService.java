@@ -94,7 +94,7 @@ public class ReportService {
     @Transactional(readOnly = true)
     public Page<ReportResponse> getReportsByCategoryAndInCharge(EmergencyCategory category, String inCharge,
         Pageable pageable) {
-        Page<Report> reports = reportRepository.findByCategoryAndInCharge(category, inCharge,
+        Page<Report> reports = reportRepository.findByCategoryAndInChargeAndIsAcceptedFalse(category, inCharge,
             pageable);
         return reports.map(ReportResponse::from);
     }
@@ -168,5 +168,10 @@ public class ReportService {
         Report updatedReport = reportRepository.save(report);
 
         return new ReportResponse(updatedReport);
+    }
+
+    public Page<ReportResponse> getAcceptedReportsByCategory(EmergencyCategory category, Pageable pageable) {
+        Page<Report> acceptedReports = reportRepository.findByCategoryAndIsAcceptedTrue(category, pageable);
+        return acceptedReports.map(ReportResponse::from);
     }
 }

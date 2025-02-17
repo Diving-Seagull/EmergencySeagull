@@ -74,6 +74,14 @@ public class ReportController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/accepted/{category}")
+    public ResponseEntity<Page<ReportResponse>> getAcceptedReportsByCategory(
+        @PathVariable EmergencyCategory category,
+        @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<ReportResponse> responses = reportService.getAcceptedReportsByCategory(category, pageable);
+        return ResponseEntity.ok(responses);
+    }
+
     @PutMapping("/{reportId}/category")
     public ResponseEntity<ReportResponse> updateReportCategory(
         @PathVariable Long reportId,
@@ -110,7 +118,6 @@ public class ReportController {
         ReportResponse response = reportService.updateCharge(reportId, chargeRequest);
         return ResponseEntity.ok(response);
     }
-
 
     @DeleteMapping("/{reportId}")
     public ResponseEntity<Void> acceptReport(@PathVariable Long reportId) {
