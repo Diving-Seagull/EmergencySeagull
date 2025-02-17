@@ -948,7 +948,6 @@ fun KakaoMapPage(
 
                                     kakaoMap.setOnCameraMoveEndListener { kakaoMap, position, gestureType ->
                                         val cameraPosLabel = kakaoMap.labelManager?.layer?.getLabel("cameraPos")
-                                        val newAnimationPolygon = kakaoMap.shapeManager?.layer?.getPolygon("newCirclePolygon")
                                         vm.updateCameraLocation(position.position.latitude, position.position.longitude)
                                         val latitude = position.position.latitude
                                         val longitude = position.position.longitude
@@ -958,7 +957,6 @@ fun KakaoMapPage(
                                         val latLng = LatLng.from(latitude, longitude)
 
                                         kakaoMap.labelManager?.layer?.remove(cameraPosLabel)
-                                        kakaoMap.shapeManager?.layer?.remove(newAnimationPolygon)
 
                                         kakaoMap.labelManager?.layer?.addLabel(
                                             LabelOptions.from(
@@ -970,28 +968,7 @@ fun KakaoMapPage(
                                             ).setRank(1)
                                         )
 
-                                        val newPolygon = kakaoMap.shapeManager?.layer?.addPolygon(
-                                            PolygonOptions.from("newCirclePolygon")
-                                                .setDotPoints(
-                                                    DotPoints.fromCircle(LatLng.from(latitude, longitude), 1.0f)
-                                                )
-                                                .setStylesSet(
-                                                    PolygonStylesSet.from(PolygonStyles.from(Color(0xFFE43D45).toArgb()))
-                                                )
-                                        )
-
-                                        val newCircleWaves: CircleWaves = CircleWaves.from(
-                                            "circleWaveAnim",
-                                            CircleWave.from(1F, 0F, 0F, 100F)
-                                        )
-                                            .setHideShapeAtStop(false)
-                                            .setInterpolation(Interpolation.CubicInOut)
-                                            .setDuration(1500)
-                                            .setRepeatCount(500)
-
-                                        val newShapeAnimator: ShapeAnimator? = kakaoMap.shapeManager?.addAnimator(newCircleWaves)
-                                        newShapeAnimator?.addPolygons(newPolygon)
-                                        newShapeAnimator?.start()
+//
                                     }
                                 }
 

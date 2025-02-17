@@ -69,15 +69,16 @@ fun LogoTab(){
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = painterResource(R.drawable.logo_tab),
+            painter = painterResource(R.drawable.logo_minitab),
             contentDescription = "logoForTab",
-            modifier = Modifier.height(15.dp)
+            modifier = Modifier.height(25.dp)
         )
-        Spacer(modifier = Modifier.weight(1f))
-        Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_bell),
-            contentDescription = "alarm"
-        )
+        //알람 삭제함.
+//        Spacer(modifier = Modifier.weight(1f))
+//        Image(
+//            imageVector = ImageVector.vectorResource(id = R.drawable.ic_bell),
+//            contentDescription = "alarm"
+//        )
     }
 }
 
