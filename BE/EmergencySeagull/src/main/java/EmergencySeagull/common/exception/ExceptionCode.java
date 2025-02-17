@@ -20,6 +20,10 @@ public enum ExceptionCode {
     INVALID_MAIN_CATEGORY(HttpStatus.BAD_REQUEST, "유효하지 않은 대분류입니다."),
     INVALID_SUB_CATEGORY(HttpStatus.BAD_REQUEST, "유효하지 않은 소분류입니다."),
 
+    // Google Geocoding
+    ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 위도와 경도에 대한 주소를 찾을 수 없습니다."),
+    GEOCODING_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Google Geocoding API 호출 중 오류가 발생했습니다."),
+
     ;
 
     private final HttpStatus httpStatus;

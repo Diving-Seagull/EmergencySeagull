@@ -3,6 +3,7 @@ package EmergencySeagull.report.service;
 import static EmergencySeagull.common.exception.ExceptionCode.REPORT_NOT_FOUND;
 
 import EmergencySeagull.common.exception.CustomException;
+import EmergencySeagull.common.utils.GoogleGeocodingUtils;
 import EmergencySeagull.gpt.dto.ClassificationResult;
 import EmergencySeagull.gpt.service.ClassificationService;
 import EmergencySeagull.report.dto.CategoryUpdateRequest;
@@ -60,12 +61,16 @@ public class ReportService {
             return new ReportResponse(updatedReport);
         }
 
+        String address = GoogleGeocodingUtils.getAddressFromCoordinates(request.getLatitude(),
+            request.getLongitude());
+
         Report report = new Report(
             request.getContent(),
             category,
             subCategory,
             request.getLatitude(),
-            request.getLongitude()
+            request.getLongitude(),
+            address
         );
 
         Report savedReport = reportRepository.save(report);
