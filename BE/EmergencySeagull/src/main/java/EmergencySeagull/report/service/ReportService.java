@@ -105,7 +105,11 @@ public class ReportService {
             .toList();
     }
 
+    @Transactional
     public void removeReport(Long reportId) {
-        reportRepository.deleteById(reportId);
+        Report report = reportRepository.findById(reportId)
+            .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
+
+        reportRepository.delete(report);
     }
 }
