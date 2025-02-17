@@ -104,10 +104,9 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public List<ReportResponse> getReportsByCategory(EmergencyCategory category) {
-        return reportRepository.findByCategory(category).stream()
-            .map(ReportResponse::new)
-            .toList();
+    public Page<ReportResponse> getReportsByCategory(EmergencyCategory category, Pageable pageable) {
+        Page<Report> reports = reportRepository.findByCategory(category, pageable);
+        return reports.map(ReportResponse::from);
     }
 
     @Transactional

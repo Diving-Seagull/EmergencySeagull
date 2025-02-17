@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -35,12 +36,6 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping
-    public ResponseEntity<Page<ReportResponse>> getAllReports(
-        @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(reportService.getAllReports(pageable));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<ReportResponse> getReport(@PathVariable Long id) {
         ReportResponse report = reportService.getReport(id);
@@ -48,9 +43,21 @@ public class ReportController {
     }
 
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<ReportResponse>> getReportsByCategory(
-        @PathVariable EmergencyCategory category) {
-        List<ReportResponse> reports = reportService.getReportsByCategory(category);
+    public ResponseEntity<Page<ReportResponse>> getReportsByCategory(
+        @PathVariable EmergencyCategory category,
+        @PageableDefault Pageable pageable) {
+        Sort sort = Sort.by(
+            Sort.Order.desc("duplicateCount"),
+            Sort.Order.asc("createdAt")
+        );
+
+        Pageable sortedPageable = PageRequest.of(
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            sort
+        );
+
+        Page<ReportResponse> reports = reportService.getReportsByCategory(category, sortedPageable);
         return ResponseEntity.ok(reports);
     }
 
