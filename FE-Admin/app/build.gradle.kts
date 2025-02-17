@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.divingseagull.emergencyseagulladmin"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.divingseagull.emergencyseagulladmin"
