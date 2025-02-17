@@ -43,7 +43,7 @@ val buttonModifier = Modifier
 fun CommonButton(
     mModifier: Modifier = buttonModifier,
     text: String = "다음",
-    buttonColor: Color = Color(0xFF397CDB),
+    buttonColor: Color = Color(0xFFD51713),
     textColor: Color = Color.White,
     onClick: () -> Unit
 ) {

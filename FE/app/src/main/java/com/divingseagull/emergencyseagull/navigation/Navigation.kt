@@ -1,16 +1,19 @@
 package com.divingseagull.emergencyseagull.navigation
 
-import android.media.MediaPlayer
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.divingseagull.emergencyseagull.composable.AndroidAudioPlayer
 import com.divingseagull.emergencyseagull.composable.AndroidAudioRecorder
-import com.divingseagull.emergencyseagull.view.AudioRecordingPage
+import com.divingseagull.emergencyseagull.view.AudioReportPage
+import com.divingseagull.emergencyseagull.view.EndingPage
+import com.divingseagull.emergencyseagull.view.KakaoMapPage
 import com.divingseagull.emergencyseagull.view.MainPage
+import com.divingseagull.emergencyseagull.view.SplashPage
+import com.divingseagull.emergencyseagull.view.TextReportPage
 import com.divingseagull.emergencyseagull.viewModel.VM
-import java.io.File
 
 /* Navigation 관리 */
 
@@ -23,16 +26,29 @@ import java.io.File
 fun NavGraph(recorder: AndroidAudioRecorder, player: AndroidAudioPlayer) {
     val navController = rememberNavController()
     var vm = VM()
+    val context = LocalContext.current
     NavHost(
         navController = navController,
-        startDestination = "AudioRecordingPage"
+        startDestination = "SplashPage"
     ) {
         //Main.kt
+        composable("SplashPage") {
+            SplashPage(navController, vm)
+        }
         composable("MainPage") {
             MainPage(navController, vm)
         }
-        composable("AudioRecordingPage") {
-            AudioRecordingPage(navController, vm, recorder, player)
+        composable("AudioReportPage") {
+            AudioReportPage(navController, vm, recorder, player)
+        }
+        composable("TextReportPage") {
+            TextReportPage(navController, vm)
+        }
+        composable("KakaoMapPage"){
+            KakaoMapPage(navController, vm = vm)
+        }
+        composable("EndingPage"){
+            EndingPage(navController)
         }
     }
 }
