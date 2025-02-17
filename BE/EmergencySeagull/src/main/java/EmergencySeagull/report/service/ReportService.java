@@ -17,7 +17,6 @@ import EmergencySeagull.report.enums.EmergencyCategory;
 import EmergencySeagull.report.repository.ReportElasticsearchRepository;
 import EmergencySeagull.report.repository.ReportRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -112,7 +111,8 @@ public class ReportService {
         Report report = reportRepository.findById(id)
             .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
 
-        EmergencyCategory newCategory = EmergencyCategory.fromDescription(request.getMainCategory());
+        EmergencyCategory newCategory = EmergencyCategory.fromDescription(
+            request.getMainCategory());
 
         assert newCategory != null;
         Report duplicateReport = findDuplicateReport(newCategory, request.getSubCategory(),
