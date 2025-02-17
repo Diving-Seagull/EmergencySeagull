@@ -2,8 +2,6 @@ package com.divingseagull.emergencyseagulladmin.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,22 +12,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -48,8 +45,11 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.divingseagull.emergencyseagulladmin.R
 import com.divingseagull.emergencyseagulladmin.composable.ClassificationTab
+import com.divingseagull.emergencyseagulladmin.composable.CommonButton
+import com.divingseagull.emergencyseagulladmin.composable.DistrictBottomSheet
+import com.divingseagull.emergencyseagulladmin.composable.ReportBox
 import com.divingseagull.emergencyseagulladmin.composable.Topbar
-import com.divingseagull.emergencyseagulladmin.composable.busanDistricts
+import com.divingseagull.emergencyseagulladmin.composable.classificationMap
 import com.divingseagull.emergencyseagulladmin.ui.theme.pretendard
 import com.divingseagull.emergencyseagulladmin.viewModel.VM
 import kotlinx.coroutines.delay
@@ -90,7 +90,9 @@ fun SplashPage(navController: NavController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainPage(navController: NavHostController, vm: VM) {
-    var selectedDistrict by remember { mutableStateOf("동래구") }
+    val district by vm.district.collectAsState()
+
+    var selectedDistrict by remember { mutableStateOf(district ?: "동래구") }
     var isClicked by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
@@ -98,7 +100,6 @@ fun MainPage(navController: NavHostController, vm: VM) {
             .background(Color(0xFFFAFAFB)),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(50.dp))
         Topbar(district = selectedDistrict, onClick = { isClicked = !isClicked })
         Text(
             text = buildAnnotatedString {
@@ -126,7 +127,8 @@ fun MainPage(navController: NavHostController, vm: VM) {
                 description = "건축물, 자동차, 선박화재",
                 onClick = {
                     vm.updateClassification("FIRE")
-                    navController.navigate("MainPage")
+                    vm.updateDistrict(selectedDistrict)
+                    navController.navigate("ReportPage")
                 }
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -137,7 +139,8 @@ fun MainPage(navController: NavHostController, vm: VM) {
                 description = "일반 인명, 수중, 특수 구조",
                 onClick = {
                     vm.updateClassification("RESCUE")
-                    navController.navigate("MainPage")
+                    vm.updateDistrict(selectedDistrict)
+                    navController.navigate("ReportPage")
                 }
             )
         }
@@ -149,8 +152,9 @@ fun MainPage(navController: NavHostController, vm: VM) {
                 title = "구급 신고",
                 description = "현장응급, 생활응급 사고",
                 onClick = {
-                    vm.updateClassification("RESCUE")
-                    navController.navigate("MainPage")
+                    vm.updateClassification("MEDICAL")
+                    vm.updateDistrict(selectedDistrict)
+                    navController.navigate("ReportPage")
                 }
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -161,8 +165,22 @@ fun MainPage(navController: NavHostController, vm: VM) {
                 description = "일반 기타 사고",
                 onClick = {
                     vm.updateClassification("SAFETY")
-                    navController.navigate("MainPage")
+                    vm.updateDistrict(selectedDistrict)
+                    navController.navigate("ReportPage")
                 }
+            )
+        }
+        Column(
+            modifier = Modifier
+                .height(80.dp)
+                .padding(horizontal = 24.dp),
+        ) {
+            ClassificationTab(
+                mModifier = Modifier.weight(1f),
+                icon = 0,
+                title = "신고 처리",
+                description = "신고별 분류를 변경할 수 있습니다",
+                onClick = {}
             )
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -180,57 +198,92 @@ fun MainPage(navController: NavHostController, vm: VM) {
 
     }
     if (isClicked) {
-        ModalBottomSheet(
-            onDismissRequest = { isClicked = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = Color.White,
-            dragHandle = {
-                Box(
-                    Modifier
-                        .padding(top = 8.dp, bottom = 11.dp)
-                        .width(48.dp)
-                        .height(5.dp)
-                        .background(
-                            color = Color(0xFFE2E4EC),
-                            shape = RoundedCornerShape(size = 12.dp)
-                        )
+        DistrictBottomSheet(
+            onIsClicked = { isClicked = !isClicked },
+            onClick = {
+                selectedDistrict = it
+                isClicked = false
+                vm.updateDistrict(selectedDistrict)
+            }
+        )
+    }
+}
+
+@Composable
+fun ReportPage(navController: NavController, vm: VM) {
+    var selectedDistrict by remember { mutableStateOf(vm.district.value.toString()) }
+    var isClicked by remember { mutableStateOf(false) }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFAFAFB))
+    ) {
+        Topbar(district = selectedDistrict, onClick = { isClicked = !isClicked })
+        Text(
+            text = classificationMap[vm.classification.collectAsState().value.toString()]
+                ?: "알 수 없음",
+            style = TextStyle(
+                fontSize = 24.sp,
+                fontFamily = pretendard,
+                fontWeight = FontWeight(700),
+                color = Color(0xFF323439),
+                textAlign = TextAlign.Center,
+            ),
+            modifier = Modifier.padding(start = 26.dp, top = 18.dp, end = 26.dp)
+        )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                ReportBox(
+                    specification = "일반화재",
+                    location = "동래구 금강공원로2 (온천동) 협성스카이라인80",
+                    description = "편의점 앞 주차장에 불이 났어요!"
                 )
             }
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 15.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 15.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    busanDistricts.forEach { district ->
-                        Text(
-                            text = district,
-                            style = TextStyle(
-                                fontSize = 18.sp,
-                                fontFamily = pretendard,
-                                fontWeight = FontWeight(400),
-                                color = Color(0xFF323439),
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 10.dp)
-                                .clickable {
-                                    selectedDistrict = district
-                                    isClicked = false
-                                    vm.updateDistrict(selectedDistrict)
-                                }
-                        )
-                    }
-                }
+            item {
+                Text("Hello", modifier = Modifier.height(50.dp))
+            }
+            item {
+                Text("Hello", modifier = Modifier.height(50.dp))
+            }
+            item {
+                Text("Hello", modifier = Modifier.height(50.dp))
+            }
+            item {
+                Text("Hello", modifier = Modifier.height(50.dp))
+            }
+            item {
+                Text("Hello", modifier = Modifier.height(50.dp))
+            }
+            item {
+                Text("Hello", modifier = Modifier.height(50.dp))
+            }
+            item {
+                Text("Hello", modifier = Modifier.height(50.dp))
+            }
+            item {
+                Text("Hello", modifier = Modifier.height(50.dp))
+            }
+            item {
+                Text("Hello", modifier = Modifier.height(50.dp))
             }
         }
+        Spacer(modifier = Modifier.height(65.dp))
+    }
+    if (isClicked) {
+        DistrictBottomSheet(
+            onIsClicked = { isClicked = !isClicked },
+            onClick = {
+                selectedDistrict = it
+                isClicked = false
+                vm.updateDistrict(selectedDistrict)
+            }
+        )
     }
 }
 
@@ -238,4 +291,11 @@ fun MainPage(navController: NavHostController, vm: VM) {
 @Composable
 fun MainPagePreview() {
     MainPage(navController = NavHostController(LocalContext.current), vm = VM())
+}
+
+@Preview
+@Composable
+fun ReportPagePreview() {
+    ReportPage(navController = NavHostController(LocalContext.current), vm = VM())
+
 }

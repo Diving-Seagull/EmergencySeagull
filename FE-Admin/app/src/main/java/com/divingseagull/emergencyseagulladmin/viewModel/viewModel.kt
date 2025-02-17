@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 class VM : ViewModel() {
     private val _district = MutableStateFlow<String?>(null)
-    private val _classification = MutableStateFlow<String?>(null)
+    private val _classification = MutableStateFlow<String?>("동래구")
 
     val district: StateFlow<String?> = _district
     val classification: StateFlow<String?> = _classification
