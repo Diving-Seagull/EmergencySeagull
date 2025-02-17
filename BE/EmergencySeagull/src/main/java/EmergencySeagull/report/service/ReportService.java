@@ -8,6 +8,7 @@ import EmergencySeagull.common.utils.GoogleGeocodingUtils;
 import EmergencySeagull.gpt.dto.ClassificationResult;
 import EmergencySeagull.gpt.service.ClassificationService;
 import EmergencySeagull.report.dto.CategoryUpdateRequest;
+import EmergencySeagull.report.dto.ChargeRequest;
 import EmergencySeagull.report.dto.ReportRequest;
 import EmergencySeagull.report.dto.ReportResponse;
 import EmergencySeagull.report.entity.Report;
@@ -156,5 +157,15 @@ public class ReportService {
         }
 
         return null;
+    }
+
+    public ReportResponse updateCharge(Long reportId, ChargeRequest chargeRequest) {
+        Report report = reportRepository.findById(reportId)
+            .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
+
+        report.updateCharge(chargeRequest.getCharge());
+        Report updatedReport = reportRepository.save(report);
+
+        return new ReportResponse(updatedReport);
     }
 }

@@ -85,4 +85,8 @@ public class Report {
         this.category = category;
         this.subCategory = subCategory;
     }
+
+    public void updateCharge(String charge) {
+        this.inCharge = charge;
+    }
 }

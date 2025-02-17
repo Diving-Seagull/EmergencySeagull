@@ -5,6 +5,7 @@ import static EmergencySeagull.common.exception.ExceptionCode.INVALID_SUB_CATEGO
 
 import EmergencySeagull.common.exception.CustomException;
 import EmergencySeagull.report.dto.CategoryUpdateRequest;
+import EmergencySeagull.report.dto.ChargeRequest;
 import EmergencySeagull.report.dto.ReportRequest;
 import EmergencySeagull.report.dto.ReportResponse;
 import EmergencySeagull.report.enums.EmergencyCategory;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -46,10 +48,10 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ReportResponse> getReport(@PathVariable Long id) {
-        ReportResponse report = reportService.getReport(id);
-        return ResponseEntity.ok(report);
+    @GetMapping("/{reportId}")
+    public ResponseEntity<ReportResponse> getReport(@PathVariable Long reportId) {
+        ReportResponse response = reportService.getReport(reportId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/category/{category}")
@@ -67,15 +69,17 @@ public class ReportController {
             sort
         );
 
-        Page<ReportResponse> reports = reportService.getReportsByCategory(category, sortedPageable);
-        return ResponseEntity.ok(reports);
+        Page<ReportResponse> responses = reportService.getReportsByCategory(category,
+            sortedPageable);
+        return ResponseEntity.ok(responses);
     }
 
-    @PutMapping("/{id}/category")
+    @PutMapping("/{reportId}/category")
     public ResponseEntity<ReportResponse> updateReportCategory(
-        @PathVariable Long id,
+        @PathVariable Long reportId,
         @Valid @RequestBody CategoryUpdateRequest request) {
-        EmergencyCategory mainCategory = EmergencyCategory.fromDescription(request.getMainCategory());
+        EmergencyCategory mainCategory = EmergencyCategory.fromDescription(
+            request.getMainCategory());
         if (mainCategory == null) {
             throw new CustomException(INVALID_MAIN_CATEGORY);
         }
@@ -96,9 +100,17 @@ public class ReportController {
             throw new CustomException(INVALID_SUB_CATEGORY);
         }
 
-        ReportResponse response = reportService.updateReportCategory(id, request);
+        ReportResponse response = reportService.updateReportCategory(reportId, request);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{reportId}/charge")
+    public ResponseEntity<ReportResponse> updateReportCharge(@PathVariable Long reportId,
+        @Valid @RequestBody ChargeRequest chargeRequest) {
+        ReportResponse response = reportService.updateCharge(reportId, chargeRequest);
+        return ResponseEntity.ok(response);
+    }
+
 
     @DeleteMapping("/{reportId}")
     public ResponseEntity<Void> removeReport(@PathVariable Long reportId) {
