@@ -45,6 +45,9 @@ public class Report {
     private Double longitude;
 
     @Column(nullable = false)
+    private String address;
+
+    @Column(nullable = false)
     private String inCharge;
 
     @CreationTimestamp
@@ -59,13 +62,14 @@ public class Report {
     private Long version;  // 동시성 제어
 
     public Report(String content, EmergencyCategory category, String subCategory, Double latitude,
-        Double longitude, String inCharge) {
+        Double longitude, String address, String inCharge) {
         this.content = content;
         this.category = category;
         this.subCategory = subCategory;
         this.latitude = latitude;
         this.longitude = longitude;
         this.duplicateCount = 1L;
+        this.address = address;
         this.inCharge = inCharge;
     }
 

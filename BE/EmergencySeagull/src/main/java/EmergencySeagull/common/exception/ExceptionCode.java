@@ -24,6 +24,8 @@ public enum ExceptionCode {
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 위도와 경도에 대한 주소를 찾을 수 없습니다."),
     GEOCODING_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Google Geocoding API 호출 중 오류가 발생했습니다."),
 
+    // Address Parse
+    INVALID_ADDRESS_FORMAT(HttpStatus.INTERNAL_SERVER_ERROR, "잘못된 주소 형식입니다."),
     ;
 
     private final HttpStatus httpStatus;
