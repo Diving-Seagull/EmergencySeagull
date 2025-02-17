@@ -126,15 +126,9 @@ fun SplashPage(navController: NavController, vm: VM) {
             contentDescription = "Splash Image"
         )
         Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Emergency_911",
-            style = TextStyle(
-                fontSize = 24.sp,
-                fontFamily = pretendard,
-                fontWeight = FontWeight(590),
-                color = Color(0xFFFFFFFF),
-                textAlign = TextAlign.Center,
-            )
+        Image(
+            imageVector = ImageVector.vectorResource(id = R.drawable.logo_string),
+            contentDescription = "Splash String"
         )
 
         val context = LocalContext.current
@@ -496,6 +490,8 @@ fun TextReportPage(navController: NavHostController, vm: VM) {
             buttonColor = if (text.isEmpty()) Color(0xFFFAC6C5) else Color(0xFFD51713),
             onClick = {
                 if (text.isNotEmpty()) {
+                    vm.updateClassification(0) // Text로 신고.
+                    vm.updateText(text)
                     navController.navigate("KakaoMapPage") {
                         popUpTo("ReportPage") { inclusive = true }
                     }
@@ -663,9 +659,17 @@ fun AudioReportPage(
         Spacer(modifier = Modifier.weight(1f))
         CommonButton(
             text = "위치 지정하기",
+            buttonColor = if (audioFile == null) Color(0xFFFAC6C5) else Color(0xFFD51713),
             onClick = {
-                navController.navigate("KakaoMapPage") {
-                    popUpTo("ReportPage") { inclusive = true }
+                if (audioFile != null) {
+                    if (isRecording) {
+                        recorder.stop()
+                        vm.updateAudioFile(audioFile)
+                    }
+                    vm.updateClassification(1) // 오디오로 신고.
+                    navController.navigate("KakaoMapPage") {
+                        popUpTo("ReportPage") { inclusive = true }
+                    }
                 }
             }
         )
@@ -834,6 +838,17 @@ fun KakaoMapPage(
                             shape = RoundedCornerShape(size = 1000.dp)
                         )
                         .padding(start = 16.dp, top = 8.dp, end = 20.dp, bottom = 8.dp)
+                        .clickable {
+                            if (vm.classification.value == 0) {
+                                vm.uploadTextDataWithMapPos()
+                            } else {
+                                vm.uploadAudioWithMapPos()
+                            }
+                            navController.navigate("EndingPage") {
+                                popUpTo("KakaoMapPage") { inclusive = true }
+                            }
+
+                        }
                 ) {
                     Image(
                         imageVector = ImageVector.vectorResource(R.drawable.ic_siren),
@@ -853,6 +868,11 @@ fun KakaoMapPage(
                 CommonButton(
                     text = "신고하기",
                     onClick = {
+                        if (vm.classification.value == 0) {
+                            vm.uploadTextDataWithMyPos()
+                        } else {
+                            vm.uploadAudioWithMyPos()
+                        }
                         navController.navigate("EndingPage") {
                             popUpTo("KakaoMapPage") { inclusive = true }
                         }
@@ -947,8 +967,12 @@ fun KakaoMapPage(
                                     shapeAnimator?.start()
 
                                     kakaoMap.setOnCameraMoveEndListener { kakaoMap, position, gestureType ->
-                                        val cameraPosLabel = kakaoMap.labelManager?.layer?.getLabel("cameraPos")
-                                        vm.updateCameraLocation(position.position.latitude, position.position.longitude)
+                                        val cameraPosLabel =
+                                            kakaoMap.labelManager?.layer?.getLabel("cameraPos")
+                                        vm.updateCameraLocation(
+                                            position.position.latitude,
+                                            position.position.longitude
+                                        )
                                         val latitude = position.position.latitude
                                         val longitude = position.position.longitude
 
@@ -963,7 +987,10 @@ fun KakaoMapPage(
                                                 "cameraPos", latLng
                                             ).setStyles(
                                                 LabelStyle.from(
-                                                    vectorDrawableToBitmap(R.drawable.ic_location_on, context)
+                                                    vectorDrawableToBitmap(
+                                                        R.drawable.ic_location_on,
+                                                        context
+                                                    )
                                                 ).setAnchorPoint(0.5f, 0.5f)
                                             ).setRank(1)
                                         )
