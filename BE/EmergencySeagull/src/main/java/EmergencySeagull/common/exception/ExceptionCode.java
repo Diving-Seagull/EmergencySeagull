@@ -16,6 +16,10 @@ public enum ExceptionCode {
     // JSON 변환 에러
     JSON_PARSE_ERROR(HttpStatus.BAD_REQUEST, "JSON 데이터 변환 중 에러 발생."),
 
+    // 카테고리 검증
+    INVALID_MAIN_CATEGORY(HttpStatus.BAD_REQUEST, "유효하지 않은 대분류입니다."),
+    INVALID_SUB_CATEGORY(HttpStatus.BAD_REQUEST, "유효하지 않은 소분류입니다."),
+
     ;
 
     private final HttpStatus httpStatus;

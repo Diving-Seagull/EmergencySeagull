@@ -68,4 +68,13 @@ public class Report {
     public void incrementDuplicateCount() {
         this.duplicateCount += 1;
     }
+
+    public void incrementDuplicateCount(Long cnt) {
+        this.duplicateCount += cnt;
+    }
+
+    public void updateCategory(EmergencyCategory category, String subCategory) {
+        this.category = category;
+        this.subCategory = subCategory;
+    }
 }
