@@ -113,8 +113,8 @@ public class ReportController {
 
 
     @DeleteMapping("/{reportId}")
-    public ResponseEntity<Void> removeReport(@PathVariable Long reportId) {
-        reportService.removeReport(reportId);
+    public ResponseEntity<Void> acceptReport(@PathVariable Long reportId) {
+        reportService.acceptReport(reportId);
         return ResponseEntity.noContent().build();
     }
 }

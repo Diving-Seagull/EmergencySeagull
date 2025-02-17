@@ -100,11 +100,11 @@ public class ReportService {
     }
 
     @Transactional
-    public void removeReport(Long reportId) {
+    public void acceptReport(Long reportId) {
         Report report = reportRepository.findById(reportId)
             .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
 
-        reportRepository.delete(report);
+        report.accept();
     }
 
     @Transactional
