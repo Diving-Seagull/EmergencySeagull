@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum EmergencyCategory {
     FIRE("화재"),
     RESCUE("구조"),
-    EMERGENCY_MEDICAL("구급"),
+    MEDICAL("구급"),
     SAFETY("생활안전");
 
     private final String description;
@@ -21,6 +21,6 @@ public enum EmergencyCategory {
                 return category;
             }
         }
-        return SAFETY;
+        return null;
     }
 }

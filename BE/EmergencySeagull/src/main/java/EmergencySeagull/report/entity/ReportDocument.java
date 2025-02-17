@@ -28,17 +28,22 @@ public class ReportDocument {
     @Field(type = FieldType.Keyword)
     private EmergencyCategory category;
 
+    @Field(type = FieldType.Keyword)
+    private String subCategory;
+
     @GeoPointField
     private GeoPoint location;
 
     @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
     private LocalDateTime createdAt;
 
-    public ReportDocument(String id, String content, EmergencyCategory category, Double latitude,
-        Double longitude, LocalDateTime createdAt) {
+    public ReportDocument(String id, String content, EmergencyCategory category,
+        String subCategory, Double latitude, Double longitude,
+        LocalDateTime createdAt) {
         this.id = id;
         this.content = content;
         this.category = category;
+        this.subCategory = subCategory;
         this.location = new GeoPoint(latitude, longitude);
         this.createdAt = createdAt;
     }
@@ -48,6 +53,7 @@ public class ReportDocument {
             report.getId().toString(),
             report.getContent(),
             report.getCategory(),
+            report.getSubCategory(),
             report.getLatitude(),
             report.getLongitude(),
             report.getCreatedAt()
