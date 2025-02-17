@@ -8,6 +8,7 @@ import EmergencySeagull.gpt.service.WhisperService;
 import EmergencySeagull.report.dto.ReportResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +36,6 @@ public class WhisperController {
         }
 
         ReportResponse response = whisperService.transcribeAudio(file, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
