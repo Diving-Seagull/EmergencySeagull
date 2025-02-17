@@ -3,6 +3,7 @@ package EmergencySeagull.report.service;
 import static EmergencySeagull.common.exception.ExceptionCode.REPORT_NOT_FOUND;
 
 import EmergencySeagull.common.exception.CustomException;
+import EmergencySeagull.gpt.dto.ClassificationResult;
 import EmergencySeagull.gpt.service.ClassificationService;
 import EmergencySeagull.report.dto.ReportRequest;
 import EmergencySeagull.report.dto.ReportResponse;
@@ -37,11 +38,15 @@ public class ReportService {
 
     @Transactional
     public ReportResponse classifyAndSaveReport(ReportRequest request) {
-        String categoryDescription = classificationService.classifyText(request.getContent());
-        EmergencyCategory category = EmergencyCategory.fromDescription(categoryDescription);
+        ClassificationResult classificationResult = classificationService.classifyText(
+            request.getContent());
+        EmergencyCategory category = EmergencyCategory.fromDescription(
+            classificationResult.getMainCategory());
+        String subCategory = classificationResult.getSubCategory();
 
         // 중복 신고 검사를 위한 쿼리 생성
         Criteria criteria = new Criteria("category").is(category.name())
+            .and("subCategory").is(subCategory)
             .and(new Criteria("createdAt").greaterThanEqual(LocalDateTime.now().minusMinutes(30)))
             .and(new Criteria("location").within(
                 new GeoPoint(request.getLatitude(), request.getLongitude()),
@@ -63,7 +68,6 @@ public class ReportService {
             long newCount = existingReport.getDuplicateCount() + 1;
 
             if (newCount > 5) {
-                // 자동 완료 처리 로직
                 return new ReportResponse(existingReport);
             }
 
@@ -75,6 +79,7 @@ public class ReportService {
         Report report = new Report(
             request.getContent(),
             category,
+            subCategory,
             request.getLatitude(),
             request.getLongitude()
         );
