@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -213,6 +214,15 @@ fun MainPage(navController: NavHostController, vm: VM) {
 fun ReportPage(navController: NavController, vm: VM) {
     var selectedDistrict by remember { mutableStateOf(vm.district.value.toString()) }
     var isClicked by remember { mutableStateOf(false) }
+    val reports by vm.reports.collectAsState()
+
+    LaunchedEffect(selectedDistrict) {
+        vm.fetchReports(
+            onSuccess = {},
+            onError = {}
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -238,39 +248,14 @@ fun ReportPage(navController: NavController, vm: VM) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
+            items(reports) { report ->
                 ReportBox(
-                    specification = "일반화재",
-                    location = "동래구 금강공원로2 (온천동) 협성스카이라인80",
-                    description = "편의점 앞 주차장에 불이 났어요!"
+                    specification = report.sub_category,
+                    location = report.address,
+                    description = report.content,
+                    id = report.id,
+                    vm = vm
                 )
-            }
-            item {
-                Text("Hello", modifier = Modifier.height(50.dp))
-            }
-            item {
-                Text("Hello", modifier = Modifier.height(50.dp))
-            }
-            item {
-                Text("Hello", modifier = Modifier.height(50.dp))
-            }
-            item {
-                Text("Hello", modifier = Modifier.height(50.dp))
-            }
-            item {
-                Text("Hello", modifier = Modifier.height(50.dp))
-            }
-            item {
-                Text("Hello", modifier = Modifier.height(50.dp))
-            }
-            item {
-                Text("Hello", modifier = Modifier.height(50.dp))
-            }
-            item {
-                Text("Hello", modifier = Modifier.height(50.dp))
-            }
-            item {
-                Text("Hello", modifier = Modifier.height(50.dp))
             }
         }
         Spacer(modifier = Modifier.height(65.dp))
