@@ -1,15 +1,17 @@
 package com.divingseagull.emergencyseagull.view
 
 import android.Manifest
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -46,7 +48,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -103,12 +104,11 @@ import com.kakao.vectormap.shape.PolygonStylesSet
 import com.kakao.vectormap.shape.ShapeAnimator
 import com.kakao.vectormap.shape.animation.CircleWave
 import com.kakao.vectormap.shape.animation.CircleWaves
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
+
 
 @SuppressLint("MissingPermission")
 @OptIn(ExperimentalPermissionsApi::class)
@@ -591,7 +591,7 @@ fun AudioReportPage(
 
         Box(
             contentAlignment = Alignment.Center
-        ){
+        ) {
             Image(
                 painter = painterResource(R.drawable.ic_recordbutton),
                 contentDescription = "recording",
@@ -728,7 +728,10 @@ fun KakaoMapPage(
 ) {
     val latitude = vm.latitude.value ?: 0.0
     val longitude = vm.longitude.value ?: 0.0
+    var cameraLatitude = remember { mutableStateOf(latitude) }
+    var cameraLongitude = remember { mutableStateOf(longitude) }
     var text by remember { mutableStateOf("") }
+    var changedLatLng by remember { mutableStateOf<Pair<String, String>>(Pair("", "")) }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -876,7 +879,6 @@ fun KakaoMapPage(
                                 }
                             },
                             object : KakaoMapReadyCallback() {
-                                // KakaoMap이 준비되었을 때 호출
                                 override fun onMapReady(kakaoMap: KakaoMap) {
                                     val cameraUpdate = CameraUpdateFactory.newCenterPosition(
                                         LatLng.from(
@@ -884,41 +886,20 @@ fun KakaoMapPage(
                                             longitude
                                         )
                                     )
-                                    Log.d("kakaoCameraUpdate", "OK")
 
-//                                    // 지도에 표시할 라벨의 스타일 설정
-//                                    val style = kakaoMap.labelManager?.addLabelStyles(
-//                                        LabelStyles.from(
-//                                            LabelStyle.from(
-//                                                vectorDrawableToBitmap(
-//                                                    R.drawable.ic_circle,
-//                                                    context
-//                                                )
-//                                            )
-//                                        )
-//                                    )
-//                                    Log.d("kakaoLabelStyle", "OK")
-//
-//                                    // 라벨 옵션을 설정하고 위치와 스타일을 적용
-//                                    val options =
-//                                        LabelOptions.from(LatLng.from(latitude, longitude))
-//                                            .setStyles(style)
-//                                    Log.d("kakaoLabelLatLng", "OK")
-//
-//                                    // KakaoMap의 labelManager에서 레이어를 가져옴
-//                                    val layer = kakaoMap.labelManager?.layer
-//                                    Log.d("kakaoLayer", "OK")
-//
-//                                    // 카메라를 지정된 위치로 이동
-//                                    kakaoMap.moveCamera(cameraUpdate)
-//                                    Log.d("kakaoCameraMove", "OK")
-//
-//                                    // 지도에 라벨을 추가
-//                                    layer?.addLabel(options)
-//                                    Log.d("kakaoLabelAdd", "OK")
+                                    Log.d("kakaoCameraUpdate", cameraUpdate.toString())
+                                    kakaoMap.getCameraPosition {
+                                        val cameraPosition = kakaoMap.cameraPosition
+                                        val newLatLng = cameraPosition?.position
+                                        if (newLatLng != null) {
+                                            Log.d(
+                                                "CameraMove",
+                                                "현재 좌표: ${newLatLng.latitude}, ${newLatLng.longitude}"
+                                            )
+                                        }
+                                    }
 
-                                    // 중심 라벨 생성
-                                    val centerLabel = kakaoMap.labelManager?.layer?.addLabel(
+                                    kakaoMap.labelManager?.layer?.addLabel(
                                         LabelOptions.from(
                                             "dotLabel",
                                             LatLng.from(latitude, longitude)
@@ -934,7 +915,6 @@ fun KakaoMapPage(
                                             .setRank(1)
                                     )
 
-// 애니메이션 폴리곤 생성
                                     val animationPolygon = kakaoMap.shapeManager?.layer?.addPolygon(
                                         PolygonOptions.from("circlePolygon")
                                             .setDotPoints(
@@ -947,7 +927,7 @@ fun KakaoMapPage(
                                             )
                                             .setStylesSet(
                                                 PolygonStylesSet.from(
-                                                    PolygonStyles.from(Color(0xFFff722b).toArgb())
+                                                    PolygonStyles.from(Color(0xFFE43D45).toArgb())
                                                 )
                                             )
                                     )
@@ -966,18 +946,67 @@ fun KakaoMapPage(
                                     shapeAnimator?.addPolygons(animationPolygon)
                                     shapeAnimator?.start()
 
+                                    kakaoMap.setOnCameraMoveEndListener { kakaoMap, position, gestureType ->
+                                        val cameraPosLabel = kakaoMap.labelManager?.layer?.getLabel("cameraPos")
+                                        val newAnimationPolygon = kakaoMap.shapeManager?.layer?.getPolygon("newCirclePolygon")
+                                        vm.updateCameraLocation(position.position.latitude, position.position.longitude)
+                                        val latitude = position.position.latitude
+                                        val longitude = position.position.longitude
+
+                                        vm.updateCameraLocation(latitude, longitude)
+
+                                        val latLng = LatLng.from(latitude, longitude)
+
+                                        kakaoMap.labelManager?.layer?.remove(cameraPosLabel)
+                                        kakaoMap.shapeManager?.layer?.remove(newAnimationPolygon)
+
+                                        kakaoMap.labelManager?.layer?.addLabel(
+                                            LabelOptions.from(
+                                                "cameraPos", latLng
+                                            ).setStyles(
+                                                LabelStyle.from(
+                                                    vectorDrawableToBitmap(R.drawable.ic_location_on, context)
+                                                ).setAnchorPoint(0.5f, 0.5f)
+                                            ).setRank(1)
+                                        )
+
+                                        val newPolygon = kakaoMap.shapeManager?.layer?.addPolygon(
+                                            PolygonOptions.from("newCirclePolygon")
+                                                .setDotPoints(
+                                                    DotPoints.fromCircle(LatLng.from(latitude, longitude), 1.0f)
+                                                )
+                                                .setStylesSet(
+                                                    PolygonStylesSet.from(PolygonStyles.from(Color(0xFFE43D45).toArgb()))
+                                                )
+                                        )
+
+                                        val newCircleWaves: CircleWaves = CircleWaves.from(
+                                            "circleWaveAnim",
+                                            CircleWave.from(1F, 0F, 0F, 100F)
+                                        )
+                                            .setHideShapeAtStop(false)
+                                            .setInterpolation(Interpolation.CubicInOut)
+                                            .setDuration(1500)
+                                            .setRepeatCount(500)
+
+                                        val newShapeAnimator: ShapeAnimator? = kakaoMap.shapeManager?.addAnimator(newCircleWaves)
+                                        newShapeAnimator?.addPolygons(newPolygon)
+                                        newShapeAnimator?.start()
+                                    }
                                 }
 
                                 override fun getPosition(): LatLng {
-                                    // 현재 위치를 반환
-                                    Log.d("returnPosition", LatLng.from(latitude, longitude).toString())
+                                    Log.d(
+                                        "returnPosition",
+                                        LatLng.from(latitude, longitude).toString()
+                                    )
                                     return LatLng.from(latitude, longitude)
-
                                 }
-                            },
+                            }
+
                         )
                     }
-                },
+                }
             )
         }
     }
