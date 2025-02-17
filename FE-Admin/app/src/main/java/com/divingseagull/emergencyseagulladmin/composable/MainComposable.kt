@@ -1,9 +1,15 @@
 package com.divingseagull.emergencyseagulladmin.composable
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.divingseagull.emergencyseagulladmin.R
 import com.divingseagull.emergencyseagulladmin.ui.theme.pretendard
+import com.divingseagull.emergencyseagulladmin.viewModel.VM
 
 val busanDistricts = listOf(
     "중구",
@@ -72,7 +79,10 @@ fun Topbar(district: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .padding(horizontal = 24.dp, vertical = 15.dp)
-            .clickable {
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
                 onClick()
             },
         verticalAlignment = Alignment.CenterVertically
@@ -104,7 +114,10 @@ fun Topbar(district: String, onClick: () -> Unit) {
             Image(
                 imageVector = ImageVector.vectorResource(R.drawable.btn_downward_arrow),
                 contentDescription = "dropdown",
-                modifier = Modifier.clickable {
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
                     onClick()
                 }
             )
@@ -113,7 +126,10 @@ fun Topbar(district: String, onClick: () -> Unit) {
         Image(
             imageVector = ImageVector.vectorResource(R.drawable.ic_bell),
             contentDescription = "notification",
-            modifier = Modifier.clickable {
+            modifier = Modifier.clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
 
             }
         )
@@ -146,7 +162,10 @@ fun ClassificationTab(
                 end = 16.dp,
                 bottom = if (icon != 0) 20.dp else 0.dp
             )
-            .clickable { onClick() }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onClick() }
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -233,7 +252,10 @@ fun DistrictBottomSheet(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp, vertical = 10.dp)
-                            .clickable {
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
                                 onClick(district)
                             }
                     )
@@ -247,7 +269,9 @@ fun DistrictBottomSheet(
 fun ReportBox(
     specification: String,
     location: String,
-    description: String
+    description: String,
+    id: Long,
+    vm: VM
 ) {
     var isVisible by remember { mutableStateOf(true) }
     var isButtonVisible by remember { mutableStateOf(false) }
@@ -267,7 +291,10 @@ fun ReportBox(
                     shape = RoundedCornerShape(size = 14.dp)
                 )
                 .padding(start = 26.dp, top = 24.dp, end = 26.dp, bottom = 24.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
                     isButtonVisible = !isButtonVisible
                 }
         ) {
@@ -310,12 +337,21 @@ fun ReportBox(
                 ),
                 modifier = Modifier.padding(bottom = 14.dp)
             )
-            CommonButton(
-                text = "수락하기",
-                buttonColor = Color(0xFFD51713),
-                textColor = Color.White,
-                onClick = { isVisible = false }
-            )
+            AnimatedVisibility(
+                visible = isButtonVisible,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                CommonButton(
+                    text = "수락하기",
+                    buttonColor = Color(0xFFD51713),
+                    textColor = Color.White,
+                    onClick = {
+                        vm.deleteReport(id, onSuccess = {})
+                        isVisible = false
+                    }
+                )
+            }
         }
     }
 }
