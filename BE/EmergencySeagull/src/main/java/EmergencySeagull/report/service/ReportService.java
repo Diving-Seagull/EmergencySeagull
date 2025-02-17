@@ -5,6 +5,7 @@ import static EmergencySeagull.common.exception.ExceptionCode.REPORT_NOT_FOUND;
 import EmergencySeagull.common.exception.CustomException;
 import EmergencySeagull.gpt.dto.ClassificationResult;
 import EmergencySeagull.gpt.service.ClassificationService;
+import EmergencySeagull.report.dto.CategoryUpdateRequest;
 import EmergencySeagull.report.dto.ReportRequest;
 import EmergencySeagull.report.dto.ReportResponse;
 import EmergencySeagull.report.entity.Report;
@@ -44,35 +45,18 @@ public class ReportService {
             classificationResult.getMainCategory());
         String subCategory = classificationResult.getSubCategory();
 
-        // 중복 신고 검사를 위한 쿼리 생성
-        Criteria criteria = new Criteria("category").is(category.name())
-            .and("subCategory").is(subCategory)
-            .and(new Criteria("createdAt").greaterThanEqual(LocalDateTime.now().minusMinutes(30)))
-            .and(new Criteria("location").within(
-                new GeoPoint(request.getLatitude(), request.getLongitude()),
-                "50m"
-            ));
+        assert category != null;
+        Report duplicateReport = findDuplicateReport(category, subCategory, request.getLatitude(),
+            request.getLongitude());
 
-        CriteriaQuery searchQuery = new CriteriaQuery(criteria);
-
-        SearchHits<ReportDocument> searchHits = elasticsearchOperations.search(
-            searchQuery,
-            ReportDocument.class
-        );
-
-        if (!searchHits.isEmpty()) {
-            ReportDocument latestDuplicate = searchHits.getSearchHit(0).getContent();
-            Report existingReport = reportRepository.findById(Long.valueOf(latestDuplicate.getId()))
-                .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
-
-            long newCount = existingReport.getDuplicateCount() + 1;
-
+        if (duplicateReport != null) {
+            long newCount = duplicateReport.getDuplicateCount() + 1;
             if (newCount > 5) {
-                return new ReportResponse(existingReport);
+                return new ReportResponse(duplicateReport);
             }
 
-            existingReport.incrementDuplicateCount();
-            Report updatedReport = reportRepository.save(existingReport);
+            duplicateReport.incrementDuplicateCount();
+            Report updatedReport = reportRepository.save(duplicateReport);
             return new ReportResponse(updatedReport);
         }
 
@@ -92,11 +76,6 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ReportResponse> getAllReports(Pageable pageable) {
-        return reportRepository.findAll(pageable).map(ReportResponse::new);
-    }
-
-    @Transactional(readOnly = true)
     public ReportResponse getReport(Long id) {
         Report report = reportRepository.findById(id)
             .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
@@ -104,7 +83,8 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ReportResponse> getReportsByCategory(EmergencyCategory category, Pageable pageable) {
+    public Page<ReportResponse> getReportsByCategory(EmergencyCategory category,
+        Pageable pageable) {
         Page<Report> reports = reportRepository.findByCategory(category, pageable);
         return reports.map(ReportResponse::from);
     }
@@ -115,5 +95,57 @@ public class ReportService {
             .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
 
         reportRepository.delete(report);
+    }
+
+    @Transactional
+    public ReportResponse updateReportCategory(Long id, CategoryUpdateRequest request) {
+        Report report = reportRepository.findById(id)
+            .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
+
+        EmergencyCategory newCategory = EmergencyCategory.fromDescription(request.getMainCategory());
+
+        assert newCategory != null;
+        Report duplicateReport = findDuplicateReport(newCategory, request.getSubCategory(),
+            report.getLatitude(), report.getLongitude());
+
+        if (duplicateReport != null && !duplicateReport.getId().equals(report.getId())) {
+            duplicateReport.incrementDuplicateCount(report.getDuplicateCount());
+            reportRepository.delete(report); // 기존 신고 삭제
+            Report updatedReport = reportRepository.save(duplicateReport);
+            return new ReportResponse(updatedReport);
+        }
+
+        report.updateCategory(newCategory, request.getSubCategory());
+        Report updatedReport = reportRepository.save(report);
+        ReportDocument reportDocument = ReportDocument.from(updatedReport);
+        reportElasticsearchRepository.save(reportDocument);
+
+        return new ReportResponse(updatedReport);
+    }
+
+    private Report findDuplicateReport(EmergencyCategory category, String subCategory,
+        Double latitude, Double longitude) {
+        Criteria criteria = new Criteria("category").is(category.name())
+            .and("subCategory").is(subCategory)
+            .and(new Criteria("createdAt").greaterThanEqual(LocalDateTime.now().minusMinutes(30)))
+            .and(new Criteria("location").within(
+                new GeoPoint(latitude, longitude),
+                "50m"
+            ));
+
+        CriteriaQuery searchQuery = new CriteriaQuery(criteria);
+
+        SearchHits<ReportDocument> searchHits = elasticsearchOperations.search(
+            searchQuery,
+            ReportDocument.class
+        );
+
+        if (!searchHits.isEmpty()) {
+            ReportDocument latestDuplicate = searchHits.getSearchHit(0).getContent();
+            return reportRepository.findById(Long.valueOf(latestDuplicate.getId()))
+                .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
+        }
+
+        return null;
     }
 }

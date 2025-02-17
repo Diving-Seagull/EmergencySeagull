@@ -21,6 +21,6 @@ public enum EmergencyCategory {
                 return category;
             }
         }
-        return SAFETY;
+        return null;
     }
 }
