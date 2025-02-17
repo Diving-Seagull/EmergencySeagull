@@ -19,6 +19,7 @@ public class ReportResponse {
     private final Long duplicateCount;
     private final String address;
     private final String inCharge;
+    private final Boolean isAccepted;
 
     public ReportResponse(Report report) {
         this.id = report.getId();
@@ -31,6 +32,7 @@ public class ReportResponse {
         this.duplicateCount = report.getDuplicateCount();
         this.address = report.getAddress();
         this.inCharge = report.getInCharge();
+        this.isAccepted = report.getIsAccepted();
     }
 
     public static ReportResponse from(Report report) {

@@ -50,6 +50,9 @@ public class Report {
     @Column(nullable = false)
     private String inCharge;
 
+    @Column(nullable = false)
+    private Boolean isAccepted;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -71,6 +74,7 @@ public class Report {
         this.duplicateCount = 1L;
         this.address = address;
         this.inCharge = inCharge;
+        this.isAccepted = false;
     }
 
     public void incrementDuplicateCount() {
@@ -88,5 +92,9 @@ public class Report {
 
     public void updateCharge(String charge) {
         this.inCharge = charge;
+    }
+
+    public void accept() {
+        this.isAccepted = true;
     }
 }
