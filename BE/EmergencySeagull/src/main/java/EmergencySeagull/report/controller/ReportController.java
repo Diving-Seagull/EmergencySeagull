@@ -55,7 +55,7 @@ public class ReportController {
     }
 
     @DeleteMapping("/{reportId}")
-    public ResponseEntity<Void> removeReport(@PathVariable Long reportId){
+    public ResponseEntity<Void> removeReport(@PathVariable Long reportId) {
         reportService.removeReport(reportId);
         return ResponseEntity.noContent().build();
     }
