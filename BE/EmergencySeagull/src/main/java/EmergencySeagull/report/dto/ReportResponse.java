@@ -17,6 +17,8 @@ public class ReportResponse {
     private final Double longitude;
     private final String createdAt;
     private final Long duplicateCount;
+    private final String address;
+    private final String inCharge;
 
     public ReportResponse(Report report) {
         this.id = report.getId();
@@ -27,6 +29,8 @@ public class ReportResponse {
         this.longitude = report.getLongitude();
         this.createdAt = report.getCreatedAt().toString();
         this.duplicateCount = report.getDuplicateCount();
+        this.address = report.getAddress();
+        this.inCharge = report.getInCharge();
     }
 
     public static ReportResponse from(Report report) {

@@ -3,9 +3,12 @@ package EmergencySeagull.report.service;
 import static EmergencySeagull.common.exception.ExceptionCode.REPORT_NOT_FOUND;
 
 import EmergencySeagull.common.exception.CustomException;
+import EmergencySeagull.common.utils.AddressParser;
+import EmergencySeagull.common.utils.GoogleGeocodingUtils;
 import EmergencySeagull.gpt.dto.ClassificationResult;
 import EmergencySeagull.gpt.service.ClassificationService;
 import EmergencySeagull.report.dto.CategoryUpdateRequest;
+import EmergencySeagull.report.dto.ChargeRequest;
 import EmergencySeagull.report.dto.ReportRequest;
 import EmergencySeagull.report.dto.ReportResponse;
 import EmergencySeagull.report.entity.Report;
@@ -14,7 +17,6 @@ import EmergencySeagull.report.enums.EmergencyCategory;
 import EmergencySeagull.report.repository.ReportElasticsearchRepository;
 import EmergencySeagull.report.repository.ReportRepository;
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -60,12 +62,19 @@ public class ReportService {
             return new ReportResponse(updatedReport);
         }
 
+        String address = GoogleGeocodingUtils.getAddressFromCoordinates(request.getLatitude(),
+            request.getLongitude());
+
+        String inCharge = AddressParser.parseCity(address);
+
         Report report = new Report(
             request.getContent(),
             category,
             subCategory,
             request.getLatitude(),
-            request.getLongitude()
+            request.getLongitude(),
+            address,
+            inCharge
         );
 
         Report savedReport = reportRepository.save(report);
@@ -102,7 +111,8 @@ public class ReportService {
         Report report = reportRepository.findById(id)
             .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
 
-        EmergencyCategory newCategory = EmergencyCategory.fromDescription(request.getMainCategory());
+        EmergencyCategory newCategory = EmergencyCategory.fromDescription(
+            request.getMainCategory());
 
         assert newCategory != null;
         Report duplicateReport = findDuplicateReport(newCategory, request.getSubCategory(),
@@ -147,5 +157,15 @@ public class ReportService {
         }
 
         return null;
+    }
+
+    public ReportResponse updateCharge(Long reportId, ChargeRequest chargeRequest) {
+        Report report = reportRepository.findById(reportId)
+            .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
+
+        report.updateCharge(chargeRequest.getCharge());
+        Report updatedReport = reportRepository.save(report);
+
+        return new ReportResponse(updatedReport);
     }
 }

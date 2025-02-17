@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CategoryUpdateRequest {
+
     private String mainCategory;
     private String subCategory;
 }
