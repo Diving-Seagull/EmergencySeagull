@@ -86,19 +86,26 @@ public class ReportService {
         return new ReportResponse(savedReport);
     }
 
+    @Transactional(readOnly = true)
     public Page<ReportResponse> getAllReports(Pageable pageable) {
         return reportRepository.findAll(pageable).map(ReportResponse::new);
     }
 
+    @Transactional(readOnly = true)
     public ReportResponse getReport(Long id) {
         Report report = reportRepository.findById(id)
             .orElseThrow(() -> new CustomException(REPORT_NOT_FOUND));
         return new ReportResponse(report);
     }
 
+    @Transactional(readOnly = true)
     public List<ReportResponse> getReportsByCategory(EmergencyCategory category) {
         return reportRepository.findByCategory(category).stream()
             .map(ReportResponse::new)
             .toList();
+    }
+
+    public void removeReport(Long reportId) {
+        reportRepository.deleteById(reportId);
     }
 }
