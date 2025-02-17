@@ -35,6 +35,9 @@ public class Report {
     @Column(nullable = false, length = 50)
     private EmergencyCategory category;
 
+    @Column(nullable = false, length = 50)
+    private String subCategory;
+
     @Column(nullable = false)
     private Double latitude;
 
@@ -52,9 +55,11 @@ public class Report {
     @Version
     private Long version;  // 동시성 제어
 
-    public Report(String content, EmergencyCategory category, Double latitude, Double longitude) {
+    public Report(String content, EmergencyCategory category, String subCategory, Double latitude,
+        Double longitude) {
         this.content = content;
         this.category = category;
+        this.subCategory = subCategory;
         this.latitude = latitude;
         this.longitude = longitude;
         this.duplicateCount = 1L;
