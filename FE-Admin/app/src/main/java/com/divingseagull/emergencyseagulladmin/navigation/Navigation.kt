@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.divingseagull.emergencyseagulladmin.view.MainPage
+import com.divingseagull.emergencyseagulladmin.view.ReportPage
 import com.divingseagull.emergencyseagulladmin.view.SplashPage
 import com.divingseagull.emergencyseagulladmin.viewModel.VM
 
@@ -13,7 +14,6 @@ import com.divingseagull.emergencyseagulladmin.viewModel.VM
 fun NavGraph(){
     val navController = rememberNavController()
     var vm = VM()
-    val context = LocalContext.current
     NavHost(
         navController = navController,
         startDestination = "SplashPage"
@@ -23,6 +23,9 @@ fun NavGraph(){
         }
         composable("MainPage") {
             MainPage(navController, vm)
+        }
+        composable("ReportPage") {
+            ReportPage(navController, vm)
         }
     }
 }
