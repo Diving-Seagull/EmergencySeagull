@@ -1,7 +1,6 @@
 package com.divingseagull.emergencyseagull.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -26,7 +25,6 @@ import com.divingseagull.emergencyseagull.viewModel.VM
 fun NavGraph(recorder: AndroidAudioRecorder, player: AndroidAudioPlayer) {
     val navController = rememberNavController()
     var vm = VM()
-    val context = LocalContext.current
     NavHost(
         navController = navController,
         startDestination = "SplashPage"

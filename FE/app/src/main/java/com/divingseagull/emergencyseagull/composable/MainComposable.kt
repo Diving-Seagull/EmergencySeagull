@@ -1,16 +1,14 @@
 package com.divingseagull.emergencyseagull.composable
 
-import android.Manifest
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.util.Log
 import androidx.annotation.DrawableRes
-import androidx.annotation.RequiresPermission
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,17 +21,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -50,12 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.divingseagull.emergencyseagull.R
 import com.divingseagull.emergencyseagull.ui.theme.pretendard
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 /* Main.kt에서 사용하는 Composable을 모아놓은 .Kotlin 파일. */
 
@@ -73,12 +57,6 @@ fun LogoTab(){
             contentDescription = "logoForTab",
             modifier = Modifier.height(25.dp)
         )
-        //알람 삭제함.
-//        Spacer(modifier = Modifier.weight(1f))
-//        Image(
-//            imageVector = ImageVector.vectorResource(id = R.drawable.ic_bell),
-//            contentDescription = "alarm"
-//        )
     }
 }
 
@@ -93,7 +71,10 @@ fun GBNTab(title:String = "test", onClick: () -> Unit){
             contentDescription = "GBN",
             modifier = Modifier
                 .size(20.dp, 20.dp)
-                .clickable {
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
                     onClick()
                 }
         )
@@ -137,7 +118,10 @@ fun ClassificationTab(
                 end = 16.dp,
                 bottom = if (icon != 0) 20.dp else 0.dp
             )
-            .clickable { onClick() }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onClick() }
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -213,47 +197,6 @@ fun TitleText(
     )
 }
 
-@RequiresPermission(
-    anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION]
-)
-@Composable
-fun LocationButton(
-    locationProviderClient: FusedLocationProviderClient,
-    userPreciseLocation: Boolean
-){
-    val scope = rememberCoroutineScope()
-    var locationInfo by remember {
-        mutableStateOf("")
-    }
-
-    Column {
-        Spacer(modifier = Modifier.height(50.dp))
-        IconButton(
-            onClick = {
-                scope.launch(Dispatchers.IO) {
-                    val priority = if (userPreciseLocation){
-                        Priority.PRIORITY_HIGH_ACCURACY
-                    } else {
-                        Priority.PRIORITY_BALANCED_POWER_ACCURACY
-                    }
-                    Log.d("priority", "${priority}")
-                    val result = locationProviderClient.getCurrentLocation(
-                        priority,
-                        CancellationTokenSource().token,
-                    ).await()
-                    result?.let { fetchedLocation->
-                        Log.d("location", "lat: ${fetchedLocation.latitude} long: ${fetchedLocation.longitude}")
-                        locationInfo = "let: ${fetchedLocation.latitude} long: ${fetchedLocation.longitude}"
-                    }
-                }
-            }
-        ) {
-            Icon(imageVector = Icons.Default.LocationOn, contentDescription = null)
-        }
-
-        Text(text = locationInfo)
-    }
-}
 
 fun vectorDrawableToBitmap(@DrawableRes drawableResId: Int, context: Context): Bitmap {
     val drawable = AppCompatResources.getDrawable(context, drawableResId)

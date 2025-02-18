@@ -22,7 +22,7 @@ import retrofit2.http.Part
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-interface WhisperApi {
+interface SendingApi {
     @Multipart
     @POST("api/whisper/transcribe")
     suspend fun transcribe(
@@ -36,7 +36,7 @@ interface WhisperApi {
     )
 }
 
-class WhisperRepository(private val api: WhisperApi) {
+class WhisperRepository(private val api: SendingApi) {
     suspend fun transcribeAudio(file: File, latitude: Double, longitude: Double) {
         val requestFile = file.asRequestBody("audio/mpeg".toMediaTypeOrNull())
         val filePart = MultipartBody.Part.createFormData("file", file.name, requestFile)
@@ -76,10 +76,7 @@ class VM : ViewModel() {
 
     val latitude: StateFlow<Double?> = _latitude
     val longitude: StateFlow<Double?> = _longitude
-    val cameraLatitude: StateFlow<Double?> = _cameraLatitude
-    val cameraLongitude: StateFlow<Double?> = _cameraLongitude
     val audioFile: StateFlow<File?> = _audioFile
-    val text: StateFlow<String?> = _text
     val classification: StateFlow<Int> = _classification
 
     private val repository: WhisperRepository = WhisperRepository(provideRetrofit())
@@ -148,7 +145,7 @@ class VM : ViewModel() {
     }
 }
 
-fun provideRetrofit(): WhisperApi {
+fun provideRetrofit(): SendingApi {
     val client = OkHttpClient.Builder()
         .followRedirects(true)
         .followSslRedirects(true)
@@ -164,5 +161,5 @@ fun provideRetrofit(): WhisperApi {
         .client(client)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
-        .create(WhisperApi::class.java)
+        .create(SendingApi::class.java)
 }
