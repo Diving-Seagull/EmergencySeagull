@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -20,8 +21,13 @@ interface ReportService {
 }
 
 interface DeleteService {
-    @GET("api/report/delete/{id}")
+    @DELETE("api/report/{id}")
     suspend fun deleteReport(@Path("id") id: Long)
+}
+
+interface AcceptedService {
+    @GET("api/report/accepted/{category}")
+    suspend fun acceptReport(@Path("category") category: String): ReportResponse
 }
 
 data class ReportResponse(
@@ -47,12 +53,18 @@ class VM : ViewModel() {
     private val _district = MutableStateFlow<String?>(null)
     private val _classification = MutableStateFlow<String?>("동래구")
     private val _reports = MutableStateFlow<List<Report>>(emptyList())
+    private val _acceptedReports = MutableStateFlow<List<Report>>(emptyList())
+    private val _accepted = MutableStateFlow<String?>("화재")
 
     val district: StateFlow<String?> = _district
     val classification: StateFlow<String?> = _classification
     val reports: StateFlow<List<Report>> = _reports
+    val accepted: StateFlow<String?> = _accepted
+    val acceptedReports: StateFlow<List<Report>> = _acceptedReports
 
     private val repository: ReportService = provideRetrofit().create(ReportService::class.java)
+    private val acceptedRepository: AcceptedService =
+        provideRetrofit().create(AcceptedService::class.java)
 
     fun updateDistrict(newDistrict: String) {
         _district.value = newDistrict
@@ -60,6 +72,10 @@ class VM : ViewModel() {
 
     fun updateClassification(newClassification: String) {
         _classification.value = newClassification
+    }
+
+    fun updateAccepted(newAccepted: String) {
+        _accepted.value = newAccepted
     }
 
     fun fetchReports(onSuccess: (List<Report>) -> Unit, onError: (Throwable) -> Unit = {}) {
@@ -83,6 +99,25 @@ class VM : ViewModel() {
             try {
                 deleteService.deleteReport(id)
                 onSuccess()
+            } catch (e: Exception) {
+                onError(e)
+            }
+        }
+    }
+
+    fun acceptReport(onSuccess: (List<Report>) -> Unit, onError: (Throwable) -> Unit = {}) {
+        val category = when (_accepted.value) {
+            "화재" -> "FIRE"
+            "구조" -> "RESCUE"
+            "구급" -> "MEDICAL"
+            "생활안전" -> "SAFETY"
+            else -> return
+        }
+        viewModelScope.launch {
+            try {
+                val response = acceptedRepository.acceptReport(category)
+                _acceptedReports.value = response.content
+                onSuccess(response.content)
             } catch (e: Exception) {
                 onError(e)
             }
