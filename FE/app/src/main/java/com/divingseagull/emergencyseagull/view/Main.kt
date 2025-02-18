@@ -1,15 +1,11 @@
 package com.divingseagull.emergencyseagull.view
 
 import android.Manifest
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -19,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -212,7 +209,7 @@ fun MainPage(navController: NavHostController, vm: VM) {
                 lineHeight = 34.sp,
                 fontFamily = pretendard,
                 fontWeight = FontWeight(700),
-                color = Color(0xFF323439), // 기본 텍스트 색상
+                color = Color(0xFF323439),
                 textAlign = TextAlign.Center,
             ),
             modifier = Modifier.padding(top = 24.dp, bottom = 18.dp)
@@ -286,7 +283,7 @@ fun SubSelectPage(navController: NavHostController, vm: VM) {
                 lineHeight = 34.sp,
                 fontFamily = pretendard,
                 fontWeight = FontWeight(700),
-                color = Color(0xFF323439), // 기본 텍스트 색상
+                color = Color(0xFF323439),
                 textAlign = TextAlign.Center,
             ),
             modifier = Modifier.padding(top = 24.dp, bottom = 18.dp)
@@ -353,7 +350,6 @@ fun SubSelectPage(navController: NavHostController, vm: VM) {
         Spacer(modifier = Modifier.height(49.dp))
     }
 }
-
 
 @Composable
 fun TextReportPage(navController: NavHostController, vm: VM) {
@@ -490,7 +486,7 @@ fun TextReportPage(navController: NavHostController, vm: VM) {
             buttonColor = if (text.isEmpty()) Color(0xFFFAC6C5) else Color(0xFFD51713),
             onClick = {
                 if (text.isNotEmpty()) {
-                    vm.updateClassification(0) // Text로 신고.
+                    vm.updateClassification(0)
                     vm.updateText(text)
                     navController.navigate("KakaoMapPage") {
                         popUpTo("ReportPage") { inclusive = true }
@@ -521,14 +517,14 @@ fun AudioReportPage(
 ) {
     val context = LocalContext.current
     var audioFile: File? = null
-    var isRecording = false// 녹음 상태 관리
+    var isRecording = false
     val scale = remember { Animatable(1f) }
     val alpha = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
 
     fun startAnimation() {
         scope.launch {
-            while (isRecording) { // isRecording이 true일 때만 실행
+            while (isRecording) {
                 scale.animateTo(
                     targetValue = 3f,
                     animationSpec = tween(800, easing = LinearEasing)
@@ -593,7 +589,10 @@ fun AudioReportPage(
                 contentDescription = "recording",
                 modifier = Modifier
                     .zIndex(1f)
-                    .clickable {
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
                         if (!isRecording) {
                             File(context.cacheDir, "audio.mp3").also {
                                 recorder.start(it)
@@ -615,7 +614,7 @@ fun AudioReportPage(
                                         MediaStore.Audio.Media.RELATIVE_PATH,
                                         Environment.DIRECTORY_MUSIC
                                     )
-                                    put(MediaStore.Audio.Media.IS_PENDING, 1) // 임시 상태
+                                    put(MediaStore.Audio.Media.IS_PENDING, 1)
                                 }
 
                                 val audioUri =
@@ -638,7 +637,7 @@ fun AudioReportPage(
                                     }
 
                                     contentValues.clear()
-                                    contentValues.put(MediaStore.Audio.Media.IS_PENDING, 0) // 저장 완료
+                                    contentValues.put(MediaStore.Audio.Media.IS_PENDING, 0)
                                     resolver.update(uri, contentValues, null, null)
                                 }
                             }
@@ -666,7 +665,7 @@ fun AudioReportPage(
                         recorder.stop()
                         vm.updateAudioFile(audioFile)
                     }
-                    vm.updateClassification(1) // 오디오로 신고.
+                    vm.updateClassification(1)
                     navController.navigate("KakaoMapPage") {
                         popUpTo("ReportPage") { inclusive = true }
                     }
@@ -676,54 +675,6 @@ fun AudioReportPage(
         Spacer(modifier = Modifier.height(50.dp))
     }
 }
-
-
-//@OptIn(ExperimentalPermissionsApi::class)
-//@RequiresPermission(
-//    anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION]
-//)
-//@Composable
-//fun LocationPage(
-//    navController: NavController
-//) {
-//    val context = LocalContext.current
-//    var showPermissionDialog by remember {
-//        mutableStateOf(false)
-//    }
-//    val locationProviderClient = remember {
-//        LocationServices.getFusedLocationProviderClient(context)
-//    }
-//    val permissions = listOf(
-//        Manifest.permission.ACCESS_COARSE_LOCATION,
-//        Manifest.permission.ACCESS_FINE_LOCATION
-//    )
-//    val permissionState = rememberMultiplePermissionsState(permissions = permissions)
-//    val allRequiredPermission =
-//        permissionState.revokedPermissions.none { it.permission in permissions.first() }
-//
-//    if (allRequiredPermission) {
-//        LocationButton(
-//            locationProviderClient = locationProviderClient,
-//            userPreciseLocation =
-//            permissionState.permissions
-//                .filter { it.status.isGranted }
-//                .map { it.permission }
-//                .contains(Manifest.permission.ACCESS_FINE_LOCATION)
-//        )
-//    } else {
-//        Button(
-//            onClick = { showPermissionDialog = true }
-//        ) {
-//            Text(text = "Click")
-//        }
-//    }
-//
-//    if (showPermissionDialog) {
-//        LocationDialog(permissionState = permissionState) {
-//            showPermissionDialog = it
-//        }
-//    }
-//}
 
 @Composable
 fun KakaoMapPage(
@@ -741,7 +692,7 @@ fun KakaoMapPage(
         modifier = Modifier.fillMaxSize()
     ) {
         val context = LocalContext.current
-        val mapView = remember { MapView(context) } // KakaoMapView를 기억하여 재사용할 수 있도록 설정
+        val mapView = remember { MapView(context) }
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -838,7 +789,10 @@ fun KakaoMapPage(
                             shape = RoundedCornerShape(size = 1000.dp)
                         )
                         .padding(start = 16.dp, top = 8.dp, end = 20.dp, bottom = 8.dp)
-                        .clickable {
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
                             if (vm.classification.value == 0) {
                                 vm.uploadTextDataWithMapPos()
                             } else {
@@ -994,8 +948,6 @@ fun KakaoMapPage(
                                                 ).setAnchorPoint(0.5f, 0.5f)
                                             ).setRank(1)
                                         )
-
-//
                                     }
                                 }
 
