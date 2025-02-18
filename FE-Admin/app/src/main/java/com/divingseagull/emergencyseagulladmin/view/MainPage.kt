@@ -26,8 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -45,8 +43,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.divingseagull.emergencyseagulladmin.R
+import com.divingseagull.emergencyseagulladmin.composable.AcceptedReportBox
+import com.divingseagull.emergencyseagulladmin.composable.AnimatedProgressBar
+import com.divingseagull.emergencyseagulladmin.composable.CategoryBottomSheet
+import com.divingseagull.emergencyseagulladmin.composable.CategoryTopbar
 import com.divingseagull.emergencyseagulladmin.composable.ClassificationTab
-import com.divingseagull.emergencyseagulladmin.composable.CommonButton
 import com.divingseagull.emergencyseagulladmin.composable.DistrictBottomSheet
 import com.divingseagull.emergencyseagulladmin.composable.ReportBox
 import com.divingseagull.emergencyseagulladmin.composable.Topbar
@@ -69,15 +70,9 @@ fun SplashPage(navController: NavController) {
             contentDescription = "Splash Image"
         )
         Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Emergency_911",
-            style = TextStyle(
-                fontSize = 24.sp,
-                fontFamily = pretendard,
-                fontWeight = FontWeight(590),
-                color = Color(0xFFFFFFFF),
-                textAlign = TextAlign.Center,
-            )
+        Image(
+            imageVector = ImageVector.vectorResource(id = R.drawable.logo_string),
+            contentDescription = "Splash String"
         )
         LaunchedEffect(Unit) {
             delay(1500)
@@ -92,7 +87,6 @@ fun SplashPage(navController: NavController) {
 @Composable
 fun MainPage(navController: NavHostController, vm: VM) {
     val district by vm.district.collectAsState()
-
     var selectedDistrict by remember { mutableStateOf(district ?: "동래구") }
     var isClicked by remember { mutableStateOf(false) }
     Column(
@@ -101,7 +95,7 @@ fun MainPage(navController: NavHostController, vm: VM) {
             .background(Color(0xFFFAFAFB)),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Topbar(district = selectedDistrict, onClick = { isClicked = !isClicked })
+        Topbar(content = selectedDistrict, onClick = { isClicked = !isClicked })
         Text(
             text = buildAnnotatedString {
                 append("관리자님!\n")
@@ -181,7 +175,10 @@ fun MainPage(navController: NavHostController, vm: VM) {
                 icon = 0,
                 title = "신고 처리",
                 description = "신고별 분류를 변경할 수 있습니다",
-                onClick = {}
+                onClick = {
+                    vm.updateAccepted("화재")
+                    navController.navigate("AcceptedPage")
+                }
             )
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -228,7 +225,7 @@ fun ReportPage(navController: NavController, vm: VM) {
             .fillMaxSize()
             .background(Color(0xFFFAFAFB))
     ) {
-        Topbar(district = selectedDistrict, onClick = { isClicked = !isClicked })
+        Topbar(content = selectedDistrict, onClick = { isClicked = !isClicked })
         Text(
             text = classificationMap[vm.classification.collectAsState().value.toString()]
                 ?: "알 수 없음",
@@ -272,6 +269,155 @@ fun ReportPage(navController: NavController, vm: VM) {
     }
 }
 
+@Composable
+fun AcceptedPage(navController: NavController, vm: VM) {
+    var isClicked by remember { mutableStateOf(false) }
+    val accepted by vm.accepted.collectAsState()
+    val acceptedReports by vm.acceptedReports.collectAsState()
+    var selectedCategory by remember { mutableStateOf(accepted ?: "화재") }
+    LaunchedEffect(selectedCategory) {
+        vm.acceptReport(
+            onSuccess = {},
+            onError = {}
+        )
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFAFAFB))
+    ) {
+        CategoryTopbar(content = selectedCategory, onClick = { isClicked = !isClicked })
+        Text(
+            text = "수락된 신고",
+            style = TextStyle(
+                fontSize = 24.sp,
+                fontFamily = pretendard,
+                fontWeight = FontWeight(700),
+                color = Color(0xFF323439),
+                textAlign = TextAlign.Center,
+            ),
+            modifier = Modifier.padding(start = 26.dp, top = 18.dp, end = 26.dp)
+        )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(acceptedReports) { report ->
+                AcceptedReportBox(
+                    specification = report.sub_category,
+                    location = report.address,
+                    description = report.content,
+                    id = report.id,
+                    vm = vm,
+                    onClick = {
+                        navController.navigate("FinalPage")
+                    }
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(65.dp))
+    }
+    if (isClicked) {
+        CategoryBottomSheet(
+            onIsClicked = { isClicked = !isClicked },
+            onClick = {
+                selectedCategory = it
+                isClicked = false
+                vm.updateDistrict(selectedCategory)
+            }
+        )
+    }
+}
+
+@Composable
+fun FinalPage(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "병상 수락 요청\n대기중이에요",
+            style = TextStyle(
+                fontSize = 28.sp,
+                lineHeight = 36.sp,
+                fontFamily = pretendard,
+                fontWeight = FontWeight(700),
+                color = Color(0xFFD51713),
+                textAlign = TextAlign.Center,
+            )
+        )
+        Spacer(modifier = Modifier.height(26.dp))
+        Text(
+            text = "잠시만 기다려주세요!",
+            style = TextStyle(
+                fontSize = 18.sp,
+                fontFamily = pretendard,
+                fontWeight = FontWeight(600),
+                color = Color(0xFF858C9A),
+                textAlign = TextAlign.Center,
+            )
+        )
+        Spacer(modifier = Modifier.height(42.dp))
+        AnimatedProgressBar(52, 52, navController)
+    }
+}
+
+@Composable
+fun EndingPage(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(modifier = Modifier.height(20.dp))
+        Image(
+            imageVector = ImageVector.vectorResource(R.drawable.ic_check),
+            contentDescription = "ending"
+        )
+        Spacer(modifier = Modifier.height(37.dp))
+        Text(
+            text = "병상 배정 완료!",
+            style = TextStyle(
+                fontSize = 30.sp,
+                lineHeight = 40.sp,
+                fontFamily = pretendard,
+                fontWeight = FontWeight(700),
+                color = Color(0xFFD51713),
+                textAlign = TextAlign.Center,
+            )
+        )
+        Spacer(modifier = Modifier.height(14.dp))
+        Text(
+            text = "최단 경로로 안내를 시작합니다",
+            style = TextStyle(
+                fontSize = 18.sp,
+                fontFamily = pretendard,
+                fontWeight = FontWeight(700),
+                color = Color(0xFF949BA8),
+                textAlign = TextAlign.Center,
+            )
+        )
+        LaunchedEffect(Unit) {
+            delay(2000)
+            navController.navigate("MainPage")
+        }
+    }
+}
+
+@Preview
+@Composable
+fun SplashPagePreview() {
+    SplashPage(navController = NavHostController(LocalContext.current))
+}
+
 @Preview
 @Composable
 fun MainPagePreview() {
@@ -282,5 +428,4 @@ fun MainPagePreview() {
 @Composable
 fun ReportPagePreview() {
     ReportPage(navController = NavHostController(LocalContext.current), vm = VM())
-
 }
