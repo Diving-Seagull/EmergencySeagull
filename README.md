@@ -57,7 +57,7 @@
 </p>
 
 **신고 처리 로직 플로우**
-![신고 처리 로직 플로](/asset/신고 처리 로직 플로우.png)
+![신고 처리 로직 플로우](/asset/신고 처리 로직 플로우.png)
 
 [API 명세서](https://documenter.getpostman.com/view/34763300/2sAYXFhx6w)
 
