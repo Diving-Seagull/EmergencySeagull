@@ -56,6 +56,9 @@
   <img src="/asset/플로우차트.png" width="50%" alt="플로우차트">
 </p>
 
+**신고 처리 로직 플로우**
+![신고 처리 로직 플로](/asset/신고 처리 로직 플로우.png)
+
 [API 명세서](https://documenter.getpostman.com/view/34763300/2sAYXFhx6w)
 
 
@@ -85,6 +88,6 @@
 </div>
 
 --- 
-MIT License 
+[MIT License](https://github.com/Diving-Seagull/EmergencySeagull/blob/main/LICENSE) 
 
 Copyright (c) 2025 Diving-Seagull
