@@ -49,15 +49,15 @@
 - Open AI API (Whisper, GPT-3.5 Turbo))
 
 **서비스 아키텍처**
-![시스템아키텍쳐](/asset/시스템아키텍쳐.png)
+![시스템 아키텍쳐](/asset/시스템아키텍쳐.png)
 
 **플로우 차트**
 <p align="center">
-  <img src="/asset/플로우차트.png" width="50%" alt="플로우차트">
+  <img src="/asset/플로우차트.png" width="50%" alt="플로우 차트">
 </p>
 
 **신고 처리 로직 플로우**
-![신고 처리 로직 플로우](/asset/신고 처리 로직 플로우.png)
+![신고 처리 로직 플로우](/asset/신고처리로직플로우.png)
 
 [API 명세서](https://documenter.getpostman.com/view/34763300/2sAYXFhx6w)
 
